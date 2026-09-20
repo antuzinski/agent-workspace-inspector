@@ -1,0 +1,14 @@
+# Merge these tables into ~/.codex/config.toml or <repo>/.codex/config.toml.
+# Relative config_file paths resolve from the config file that declares them.
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+[agents.bounded-worker]
+description = "Executes bounded, low-risk work with explicit inputs and objective verification."
+config_file = "agents/bounded-worker.toml"
+
+[agents.critical-reviewer]
+description = "Independently reviews material architecture, correctness, security, or failed-verification risks."
+config_file = "agents/critical-reviewer.toml"

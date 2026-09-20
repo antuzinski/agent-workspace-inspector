@@ -1,0 +1,7 @@
+interface:
+  display_name: "Workspace Inspector"
+  short_description: "Audit Codex or Claude Code configuration"
+  default_prompt: "Use $workspace-inspector to audit this agent workspace and propose the minimum useful changes."
+
+policy:
+  allow_implicit_invocation: true
