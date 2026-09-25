@@ -2,7 +2,7 @@
 
 A portable skill for auditing and improving an AI coding workspace in **OpenAI Codex** or **Claude Code**.
 
-It checks persistent instructions, skills, agent definitions, MCP servers, hooks, configuration scope, routing rules, handoffs, checkpoints, verification, and optional telemetry. It then proposes the smallest useful cleanup before changing anything.
+It checks persistent instructions, skills, agent definitions, MCP servers, hooks, configuration scope, routing rules, handoffs, checkpoints, verification, and optional telemetry. It compares the active setup with the repository's harness and recommends whether to keep, selectively change, merge, or replace it. The harness is a candidate baseline, not an automatic replacement.
 
 The repository contains one cross-platform skill and separate, clearly labeled templates for Codex and Claude Code.
 
@@ -12,6 +12,8 @@ The repository contains one cross-platform skill and separate, clearly labeled t
 - finds stale, duplicate, conflicting, unreachable, or overly broad instructions;
 - separates always-on rules from on-demand skills and deterministic hooks;
 - recommends direct work, bounded delegation, and critical review gates;
+- explains material recommendations using platform documentation, research, local evidence, and clearly labeled inference;
+- preserves useful existing requirements when adapting or replacing rules;
 - defines compact handoffs and event-based checkpoints;
 - optionally adds lightweight telemetry markers without inventing token counts;
 - verifies activation after changes.
@@ -36,7 +38,7 @@ Or copy `workspace-inspector/` to one of these locations:
 Invoke it with:
 
 ```text
-$workspace-inspector Audit this Codex workspace and propose the minimum useful changes.
+$workspace-inspector Audit this workspace against the harness in this GitHub repository. Compare keeping, targeted changes, merging, and replacing; explain the choice with evidence and its limits. Apply the best-fit reversible changes, including full replacement if it is genuinely the better fit, while preserving my requirements.
 ```
 
 ## Install for Claude Code
@@ -56,9 +58,19 @@ Invoke it with:
 
 The shared frontmatter uses only fields supported by both products. Claude-specific agent templates live under `workspace-inspector/assets/claude/`; Codex-specific templates live under `workspace-inspector/assets/codex/`.
 
+## How the audit chooses a path
+
+1. Inspect what is active in the current workspace, not just which files exist.
+2. Record the user's goal, constraints, and existing behavior worth preserving.
+3. Compare keeping the setup, targeted edits, merging selected harness parts, and replacing the relevant setup.
+4. Explain the recommendation, strongest viable alternative, deciding criterion, evidence and its limits, risks, preservation plan, and verification. Link sources for material research and platform claims; label unsupported causal explanations as inference.
+5. Apply when the user's request authorizes implementation. A conditional request such as “apply the best fit” or “replace my setup if this harness fits” authorizes choosing the route and making reversible, in-scope changes, including full replacement when justified; do not ask for the same permission again. Ask only for a materially unresolved choice or an irreversible/external action outside the authorization.
+
+The research basis and its limitations are summarized in [`workspace-inspector/references/evidence-basis.md`](workspace-inspector/references/evidence-basis.md). The skill distinguishes platform documentation from studies of effectiveness: supported features do not by themselves prove improved quality, cost, or speed.
+
 ## Applying the routing templates
 
-Run the audit first. Then ask the skill to apply either the Codex or Claude template. The templates implement:
+Run the audit and choose the fitting path first. Apply either platform template only after comparing it with the active setup; merge useful existing requirements rather than replacing them blindly. The templates implement:
 
 1. direct work by default;
 2. a bounded worker only for independent, settled, objectively verifiable work;
@@ -88,7 +100,7 @@ workspace-inspector/
 
 ## Safety model
 
-The skill treats inspection as read-only. It distinguishes recommendations from verified facts and asks for authorization before modifying global settings, enabling hooks, connecting MCP servers, or replacing existing policy files. Existing user and project rules are merged carefully rather than overwritten blindly.
+An audit-only request remains read-only. For implementation requests, the skill works within the user's authorized scope and preserves established requirements. It asks for further approval only when a material choice remains unresolved or a destructive or external action is not clearly authorized. Existing user and project rules are merged carefully rather than overwritten blindly.
 
 ## Official references
 
@@ -101,7 +113,7 @@ The skill treats inspection as read-only. It distinguishes recommendations from 
 - [Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 - [Claude Code directory layout](https://code.claude.com/docs/en/claude-directory)
 
-Documentation links and feature names were checked on 2026-09-20. Both products evolve quickly; the skill requires re-checking official documentation before relying on version-sensitive fields.
+The Codex documentation and research links in the evidence basis were re-checked on 2026-09-25. The Claude Code links and feature names were checked on 2026-09-20. Both products evolve quickly; re-check official documentation before relying on version-sensitive fields.
 
 ## License
 

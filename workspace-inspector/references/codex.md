@@ -27,12 +27,14 @@ Keep global instructions personal and reusable. Keep repository rules close to t
 
 ## Applying the templates
 
-Do not copy the examples blindly. Merge them with existing configuration.
+Treat the templates as a candidate baseline, not a default replacement. Compare the active setup with the user's goals and constraints; retain useful behavior and merge only the selected changes. For a full replacement, account for every project-specific requirement and verify it afterward.
 
 - Use `assets/codex/AGENTS.md` at user or repository scope for routing and work-stage policy.
 - Copy `assets/codex/agents/*.toml` beside the target config under `agents/`.
 - Merge the tables from `assets/codex/config.toml.example` into the applicable `config.toml`.
 - Leave model lines commented unless the user chooses models that are available to their account.
+
+If the user asked only for an audit or recommendation, do not mutate configuration. If they asked to apply the appropriate changes, make reversible, in-scope edits without asking for the same authorization again. Ask only when an unresolved choice materially changes the outcome or a destructive/external action is not clearly authorized.
 
 ## Verification
 

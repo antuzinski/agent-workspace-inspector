@@ -8,10 +8,17 @@
 
 ## Work stages
 
-- C0 Direct: proceed when outcome, target, risk, and verification are clear.
+- C0 Direct: tiny, explicit, reversible work with known target and obvious verification proceeds directly. For clear non-trivial work, state a concise plan and continue; pause only for a material unresolved choice.
 - C1 Diagnose: investigate before mutation when cause or scope is unknown.
 - C2 Implement: reuse existing mechanisms and make the smallest coherent change.
 - C3 Verify: run the narrowest objective check that exercises the change.
+
+## Decisions and preservation
+
+- For consequential recommendations, compare the strongest viable alternative when it could change the choice. State the deciding criterion and distinguish documented behavior, measured outcomes, inference, and user preference.
+- Treat a challenge as a reason to re-check, not as proof of error. If the conclusion changes, say what evidence, error, goal, constraint, or inference changed and why it matters.
+- Before revising established rules or workflows, identify their purpose and requirements to preserve. Verify those requirements after the change unless the user explicitly changes them.
+- Do not claim a practice is effective or ineffective without relevant outcome evidence. Keep the review proportionate and do not invent objections for balance.
 
 ## Routing
 

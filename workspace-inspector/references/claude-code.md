@@ -28,10 +28,14 @@ Claude Code can also read `AGENTS.md`, but prefer `CLAUDE.md` for a native Claud
 
 ## Applying the templates
 
+Treat the templates as a candidate baseline, not a default replacement. Compare the active setup with the user's goals and constraints; retain useful behavior and merge only the selected changes. For a full replacement, account for every project-specific requirement and verify it afterward.
+
 - Merge `assets/claude/CLAUDE.md` into the appropriate persistent instruction scope.
 - Copy `assets/claude/agents/*.md` to `.claude/agents/` or `~/.claude/agents/`.
 - The templates use `model: inherit` for portability. Choose a model alias only after confirming availability and cost/quality requirements.
 - Do not add hooks or MCP merely to imitate another product. Add them only for a real deterministic action or external data source.
+
+If the user asked only for an audit or recommendation, do not mutate configuration. If they asked to apply the appropriate changes, make reversible, in-scope edits without asking for the same authorization again. Ask only when an unresolved choice materially changes the outcome or a destructive/external action is not clearly authorized.
 
 ## Verification
 

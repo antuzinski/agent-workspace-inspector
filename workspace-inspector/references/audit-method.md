@@ -7,6 +7,7 @@ Record:
 - product and version when available;
 - operating system;
 - current working directory and repository root;
+- the user's goals, constraints, and what should count as success;
 - personal, project, nested, managed, and plugin configuration locations;
 - whether the user wants inspection only or also implementation.
 
@@ -56,7 +57,20 @@ Delegation is useful only when isolated context or parallelism is worth its extr
 
 Require the root agent to integrate every result. A returned subagent result is evidence, not automatic acceptance.
 
-## 6. Report minimum actions
+## 6. Compare improvement paths
+
+Before recommending this repository's harness, compare these paths:
+
+1. keep the current setup;
+2. make targeted changes;
+3. merge or adapt selected parts of this harness;
+4. replace the relevant setup with this harness.
+
+Use the same criteria for every plausible path: fit to the user's goal, coverage of required behavior, active scope and platform compatibility, context and coordination overhead, safety and permissions, maintenance, reversibility, and verification. Record useful existing behavior and project-specific requirements as invariants. A full replacement must account for each invariant; preserve it, adapt it, or identify it as intentionally retired. Do not assume the template is superior because it is newer or more consistent.
+
+For workflow and effectiveness claims, read [evidence-basis.md](evidence-basis.md). Separate supported platform behavior from measured outcomes, author-reported results, local observations, engineering inference, and preferences. Cite the specific source next to each material research or documentation claim; briefly state its scope and limitations. Use current primary sources when version-sensitive behavior matters. If results are inconclusive, say so and recommend a small, reversible change or a comparison on representative tasks rather than asserting a benefit.
+
+## 7. Report minimum actions
 
 Lead with actions that have a predictable benefit without an A/B experiment:
 
@@ -67,4 +81,4 @@ Lead with actions that have a predictable benefit without an A/B experiment:
 5. add routing only if there is recurring delegable work;
 6. leave model tuning and stylistic preferences as optional.
 
-For every recommendation state the expected effect, evidence, scope, reversibility, and verification method.
+For each material recommendation state the chosen path, strongest viable alternative, deciding criterion, expected effect, evidence and its limits, scope, requirements to preserve, reversibility, confidence, and verification method. Keep the report compact for routine audits.
