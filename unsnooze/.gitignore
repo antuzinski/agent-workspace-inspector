@@ -1,0 +1,13 @@
+# Both forms: the trailing slash matches a directory, and a bare entry also
+# matches a symlink of that name (which `git add -A` would otherwise commit).
+node_modules/
+node_modules
+*.log
+.DS_Store
+*.tgz
+docs/superpowers/
+.mcp.json
+.playwright-mcp/
+plans/
+.vercel
+.env*

@@ -13,6 +13,11 @@
 - C2 Implement: reuse existing mechanisms and make the smallest coherent change.
 - C3 Verify: run the narrowest objective check that exercises the change.
 
+## Skills and hooks
+
+- Load only available, task-relevant skills; check their names and supporting files before depending on them. Keep occasional procedures in skills rather than this always-on file.
+- Use hooks only for a reviewed, deterministic lifecycle action with a tested failure path. Do not add a startup hook to copy instructions or preload skills that Codex already discovers.
+
 ## Decisions and preservation
 
 - For consequential recommendations, compare the strongest viable alternative when it could change the choice. State the deciding criterion and distinguish documented behavior, measured outcomes, inference, and user preference.

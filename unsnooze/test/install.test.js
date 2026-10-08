@@ -1,0 +1,316 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+// cmdInstall is one `--daemon` flag away from writing the real autostart unit,
+// and every unit we generate shares one label — so a stray write would hijack
+// the machine's live daemon. install.js honors these overrides for exactly
+// this reason; set them before anything can resolve an autostart path.
+const AUTOSTART_ISOLATION = mkdtempSync(join(tmpdir(), 'unsnooze-install-autostart-'));
+process.env.UNSNOOZE_LAUNCH_AGENTS_DIR = join(AUTOSTART_ISOLATION, 'LaunchAgents');
+process.env.UNSNOOZE_SYSTEMD_USER_DIR = join(AUTOSTART_ISOLATION, 'systemd');
+process.env.UNSNOOZE_FISH_CONFIG = join(AUTOSTART_ISOLATION, 'config.fish');
+
+import {
+  activeCodexInstructionsPath, cmdInstall, codexCheckpointInstructionBlock,
+  installCodexCompactionBlock, removeCodexCompactionBlock,
+  resolveCodexCompactionPolicy,
+  installCodexInstructionBlock, mergeHookIntoSettings, removeCodexInstructionBlock,
+  removeHookFromSettings, installZshrcBlock, stripFencedBlock,
+} from '../src/install.js';
+
+const REAL_ISH_SETTINGS = JSON.stringify({
+  model: 'claude-fable-5[1m]',
+  permissions: { defaultMode: 'acceptEdits', allow: ['Bash(ls:*)'] },
+  hooks: {
+    StopFailure: [{
+      matcher: 'overloaded|server_error|rate_limit',
+      hooks: [{ type: 'command', command: 'node /x/claude-auto-retry/bin/cli.js _stopfailure-hook', timeout: 5 }],
+    }],
+    SessionStart: [{ hooks: [{ type: 'command', command: 'echo hi' }] }],
+  },
+  enabledPlugins: ['superpowers'],
+}, null, 2);
+
+test('merge replaces claude-auto-retry hook, preserves everything else', () => {
+  const out = JSON.parse(mergeHookIntoSettings(REAL_ISH_SETTINGS));
+  assert.equal(out.model, 'claude-fable-5[1m]');
+  assert.deepEqual(out.enabledPlugins, ['superpowers']);
+  assert.equal(out.hooks.SessionStart.length, 1);
+  assert.equal(out.hooks.StopFailure.length, 1);
+  const cmd = out.hooks.StopFailure[0].hooks[0].command;
+  assert.match(cmd, /unsnooze\.js"? _hook-stopfailure/);
+  assert.ok(!cmd.includes('claude-auto-retry'));
+});
+
+test('merge is idempotent', () => {
+  const once = mergeHookIntoSettings(REAL_ISH_SETTINGS);
+  const twice = mergeHookIntoSettings(once);
+  assert.equal(JSON.parse(twice).hooks.StopFailure.length, 1);
+});
+
+test('merge into empty settings works', () => {
+  const out = JSON.parse(mergeHookIntoSettings('{}'));
+  assert.equal(out.hooks.StopFailure.length, 1);
+});
+
+test('removeHookFromSettings removes only ours', () => {
+  const merged = mergeHookIntoSettings(REAL_ISH_SETTINGS);
+  const removed = JSON.parse(removeHookFromSettings(merged));
+  assert.equal(removed.hooks.StopFailure, undefined);
+  assert.equal(removed.hooks.SessionStart.length, 1);
+});
+
+const OLD_ZSHRC = `export PATH=$PATH:/foo
+
+# >>> claude-auto-retry >>>
+unalias claude 2>/dev/null || true
+claude() {
+  if [ "\${CLAUDE_AUTO_RETRY_ACTIVE}" = "1" ]; then
+    command claude "$@"
+  fi
+}
+# <<< claude-auto-retry <<<
+
+alias ll='ls -la'
+`;
+
+test('installZshrcBlock removes old block, adds fenced new one', () => {
+  const { content, oldRemoved } = installZshrcBlock(OLD_ZSHRC);
+  assert.equal(oldRemoved, true);
+  assert.ok(!content.includes('CLAUDE_AUTO_RETRY_ACTIVE'));
+  assert.ok(content.includes('# >>> unsnooze >>>'));
+  assert.ok(content.includes("alias ll='ls -la'"));
+  assert.ok(content.includes('export PATH=$PATH:/foo'));
+  // Idempotent: installing again yields exactly one block
+  const again = installZshrcBlock(content).content;
+  assert.equal(again.split('# >>> unsnooze >>>').length, 2);
+});
+
+// Migration off the pre-release "claude-session-guard" (csg) install.
+const LEGACY_CSG_ZSHRC = `export PATH=$PATH:/foo
+
+# >>> claude-session-guard >>>
+unalias claude 2>/dev/null || true
+claude() {
+  if [ "\${CSG_ACTIVE}" = "1" ]; then
+    command claude "$@"
+    return $?
+  fi
+  node "/x/claude-session-guard/bin/csg.js" "$@"
+}
+# <<< claude-session-guard <<<
+
+alias ll='ls -la'
+`;
+
+test('installZshrcBlock removes legacy claude-session-guard block', () => {
+  const { content, oldRemoved } = installZshrcBlock(LEGACY_CSG_ZSHRC);
+  assert.equal(oldRemoved, true);
+  assert.ok(!content.includes('# >>> claude-session-guard >>>'));
+  assert.ok(!content.includes('# <<< claude-session-guard <<<'));
+  assert.ok(!content.includes('csg.js'));
+  assert.ok(!content.includes('CSG_ACTIVE'));
+  assert.ok(content.includes('# >>> unsnooze >>>'));
+  assert.ok(content.includes("alias ll='ls -la'"));
+});
+
+test('merge replaces legacy csg hook entry', () => {
+  const legacy = JSON.stringify({
+    hooks: {
+      StopFailure: [{
+        matcher: 'overloaded|server_error|rate_limit',
+        hooks: [{ type: 'command', command: 'node /x/claude-session-guard/bin/csg.js _hook-stopfailure', timeout: 5 }],
+      }],
+    },
+  });
+  const out = JSON.parse(mergeHookIntoSettings(legacy));
+  assert.equal(out.hooks.StopFailure.length, 1);
+  const cmd = out.hooks.StopFailure[0].hooks[0].command;
+  assert.match(cmd, /unsnooze\.js"? _hook-stopfailure/);
+  assert.ok(!cmd.includes('csg.js'));
+});
+
+test('stripFencedBlock leaves untouched content when no block', () => {
+  const { content, found } = stripFencedBlock('a\nb\n', '# >>> x >>>', '# <<< x <<<');
+  assert.equal(found, false);
+  assert.equal(content, 'a\nb\n');
+});
+
+test('wrapper falls back to the real CLI when the unsnooze entry point is gone', () => {
+  // Regression: renaming/deleting bin/*.js while a wrapper still pointed at it
+  // bricked the `claude` command entirely (MODULE_NOT_FOUND on every launch).
+  const { content } = installZshrcBlock('', ['claude']);
+  const guard = content.match(/if \[ "\$\{UNSNOOZE_ACTIVE\}" = "1" \] \|\| \[ ! -f "([^"]+)" \]/);
+  assert.ok(guard, 'wrapper must check the entry point exists before exec-ing it');
+  assert.match(guard[1], /unsnooze\.js$/);
+});
+
+test('settings hook command is guarded so a missing entry point exits 0', () => {
+  // The guarantee is platform-independent; the syntax is not. Claude Code runs
+  // hooks through cmd.exe on native Windows, where `test` does not exist — so
+  // this asserted the POSIX form and went red on windows-latest once the
+  // command became platform-aware. Both forms are checked explicitly rather
+  // than letting the host platform decide which half gets covered.
+  const posix = JSON.parse(mergeHookIntoSettings('{}', { platform: 'darwin' }))
+    .hooks.StopFailure[0].hooks[0].command;
+  assert.match(posix, /test -f .*unsnooze\.js.*&&/,
+    'hook must no-op (exit 0) when the entry point is gone');
+
+  const win = JSON.parse(mergeHookIntoSettings('{}', { platform: 'win32' }))
+    .hooks.StopFailure[0].hooks[0].command;
+  assert.match(win, /if exist .*unsnooze\.js/i);
+  assert.match(win, /exit 0/);
+});
+
+test('wrapper block contains one function per enabled agent, routed via _run', () => {
+  const { content } = installZshrcBlock('', ['claude', 'codex']);
+  assert.match(content, /claude\(\) \{/);
+  assert.match(content, /codex\(\) \{/);
+  assert.ok(!content.includes('grok()'), 'disabled agents get no wrapper');
+  assert.match(content, /_run claude "\$@"/);
+  assert.match(content, /_run codex "\$@"/);
+  assert.match(content, /UNSNOOZE_ACTIVE/);
+});
+
+test('cmdInstall creates the settings parent directory when missing', () => {
+  // Regression: a machine without ~/.claude/ crashed `unsnooze setup` with
+  // ENOENT — atomicWrite assumed the parent directory existed.
+  const dir = mkdtempSync(join(tmpdir(), 'unsnooze-install-test-'));
+  try {
+    const settings = join(dir, '.claude', 'settings.json');   // .claude does not exist yet
+    const rc = join(dir, '.zshrc');
+    const code = cmdInstall(['--yes', '--settings', settings, '--zshrc', rc], { agents: ['claude'] });
+    assert.equal(code, 0);
+    assert.ok(existsSync(settings), 'settings.json must be created');
+    assert.ok(JSON.parse(readFileSync(settings, 'utf-8')).hooks.StopFailure);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('re-installing with a different agent set replaces the block', () => {
+  const first = installZshrcBlock('', ['claude', 'codex', 'grok']).content;
+  const second = installZshrcBlock(first, ['claude']).content;
+  assert.ok(!second.includes('codex()'));
+  assert.ok(!second.includes('grok()'));
+  assert.match(second, /claude\(\) \{/);
+  assert.equal(second.split('# >>> unsnooze >>>').length, 2);
+});
+
+// --- generalized hook merge (qwen: Claude-shaped hooks in ~/.qwen/settings.json) ---
+
+test('merge with agent/matcher options writes an agent-tagged hook', () => {
+  const out = JSON.parse(mergeHookIntoSettings('{}', { agent: 'qwen', matcher: 'rate_limit|unknown' }));
+  assert.equal(out.hooks.StopFailure.length, 1);
+  assert.equal(out.hooks.StopFailure[0].matcher, 'rate_limit|unknown');
+  const cmd = out.hooks.StopFailure[0].hooks[0].command;
+  assert.match(cmd, /unsnooze\.js"? _hook-stopfailure --agent qwen/);
+});
+
+test('agent-tagged merge is idempotent and removable', () => {
+  const once = mergeHookIntoSettings('{"foo":1}', { agent: 'qwen', matcher: 'rate_limit|unknown' });
+  const twice = mergeHookIntoSettings(once, { agent: 'qwen', matcher: 'rate_limit|unknown' });
+  assert.equal(JSON.parse(twice).hooks.StopFailure.length, 1);
+  const removed = JSON.parse(removeHookFromSettings(twice));
+  assert.equal(removed.hooks, undefined);
+  assert.equal(removed.foo, 1);
+});
+
+test('default merge is unchanged by the generalization (claude, no --agent)', () => {
+  const out = JSON.parse(mergeHookIntoSettings('{}'));
+  assert.equal(out.hooks.StopFailure[0].matcher, 'overloaded|server_error|rate_limit');
+  assert.ok(!out.hooks.StopFailure[0].hooks[0].command.includes('--agent'));
+});
+
+test('Codex checkpoint instructions are fenced, exact-schema, and idempotent', () => {
+  const original = '# My existing rules\n\n- Keep this.\n';
+  const once = installCodexInstructionBlock(original);
+  const twice = installCodexInstructionBlock(once);
+  assert.equal(once, twice);
+  assert.match(once, /UNSNOOZE_CHECKPOINT_V1/);
+  assert.match(once, /checkpoint save --stdin/);
+  assert.match(once, /Never print/);
+  assert.match(once, /"schema_version":1/);
+  assert.match(once, /Never include secrets/);
+  assert.equal(once.split('unsnooze checkpoint protocol >>>').length, 2);
+  const removed = removeCodexInstructionBlock(once);
+  assert.equal(removed.found, true);
+  assert.match(removed.content, /My existing rules/);
+  assert.doesNotMatch(removed.content, /UNSNOOZE_CHECKPOINT_V1/);
+  assert.match(codexCheckpointInstructionBlock(), /next_responsibility/);
+});
+
+test('non-empty AGENTS.override.md is the active Codex global file', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'unsnooze-codex-agents-test-'));
+  try {
+    mkdirSync(dir, { recursive: true });
+    assert.equal(activeCodexInstructionsPath(dir), join(dir, 'AGENTS.md'));
+    writeFileSync(join(dir, 'AGENTS.override.md'), '');
+    assert.equal(activeCodexInstructionsPath(dir), join(dir, 'AGENTS.md'));
+    writeFileSync(join(dir, 'AGENTS.override.md'), '# override\n');
+    assert.equal(activeCodexInstructionsPath(dir), join(dir, 'AGENTS.override.md'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('Codex compaction policy is adaptive, top-level, idempotent, and preserves user overrides', () => {
+  const catalog = JSON.stringify({ models: [{
+    slug: 'gpt-test', context_window: 272000, effective_context_window_percent: 95,
+  }] });
+  const policy = resolveCodexCompactionPolicy({
+    configContent: 'model = "gpt-test"\n', modelsCacheContent: catalog,
+  });
+  assert.equal(policy.tokenLimit, 160000);
+  const original = 'model = "gpt-test"\n\n[mcp_servers.demo]\nurl = "https://example.test"\n';
+  const once = installCodexCompactionBlock(original, policy);
+  const twice = installCodexCompactionBlock(once, policy);
+  assert.equal(once, twice);
+  assert.ok(once.indexOf('model_auto_compact_token_limit = 160000') < once.indexOf('[mcp_servers.demo]'));
+  assert.match(once, /model_auto_compact_token_limit_scope = "body_after_prefix"/);
+  const removed = removeCodexCompactionBlock(once);
+  assert.equal(removed.found, true);
+  assert.match(removed.content, /mcp_servers\.demo/);
+
+  const userOverride = 'model_auto_compact_token_limit = 190000\n';
+  const respected = installCodexCompactionBlock(userOverride, policy);
+  assert.equal((respected.match(/model_auto_compact_token_limit\s*=/g) || []).length, 1);
+  assert.match(respected, /190000/);
+});
+
+test('unknown Codex model catalog leaves the threshold adaptive', () => {
+  const policy = resolveCodexCompactionPolicy({ configContent: '', modelsCacheContent: '' });
+  assert.equal(policy.tokenLimit, null);
+  const installed = installCodexCompactionBlock('', policy);
+  assert.doesNotMatch(installed, /model_auto_compact_token_limit\s*=/);
+  assert.match(installed, /model_auto_compact_token_limit_scope = "body_after_prefix"/);
+});
+
+test('cmdInstall adds checkpoint protocol for Codex without touching other instructions', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'unsnooze-codex-install-test-'));
+  try {
+    const instructions = join(dir, 'AGENTS.md');
+    const codexConfig = join(dir, 'config.toml');
+    writeFileSync(join(dir, 'models_cache.json'), JSON.stringify({
+      models: [{ slug: 'gpt-test', context_window: 272000 }],
+    }));
+    const rc = join(dir, '.zshrc');
+    const settings = join(dir, '.claude', 'settings.json');
+    writeFileSync(instructions, '# User rule\n\n- Preserve me.\n');
+    const code = cmdInstall([
+      '--yes', '--settings', settings, '--zshrc', rc,
+      '--codex-instructions', instructions,
+      '--codex-config', codexConfig,
+    ], { agents: ['codex'] });
+    assert.equal(code, 0);
+    const result = readFileSync(instructions, 'utf-8');
+    assert.match(result, /Preserve me/);
+    assert.match(result, /checkpoint save --stdin/);
+    assert.match(readFileSync(codexConfig, 'utf-8'), /model_auto_compact_token_limit = 160000/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

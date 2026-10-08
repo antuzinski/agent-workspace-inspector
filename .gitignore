@@ -2,3 +2,5 @@
 Thumbs.db
 *.log
 .codex-log/
+.unsnooze/
+unsnooze/.unsnooze/

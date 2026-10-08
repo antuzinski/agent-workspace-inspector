@@ -6,6 +6,8 @@ It checks persistent instructions, skills, agent definitions, MCP servers, hooks
 
 The repository contains one cross-platform skill and separate, clearly labeled templates for Codex and Claude Code.
 
+It also includes a [bundled Unsnooze fork](unsnooze/README.md) with durable Codex checkpoints, recovery support, and an optional Jev checkpoint experiment. This is a separate executable component: installing the inspector skill does not install or activate Unsnooze, Jev, or its hooks. The bundled fork retains the [upstream Unsnooze MIT license](unsnooze/LICENSE) and its author's attribution.
+
 ## What it does
 
 - inventories the configuration that can actually load from the current working directory;
@@ -18,7 +20,9 @@ The repository contains one cross-platform skill and separate, clearly labeled t
 - optionally adds lightweight telemetry markers without inventing token counts;
 - verifies activation after changes.
 
-It does **not** install MCP servers, enable hooks, overwrite user configuration, or publish data without explicit authorization.
+Installing this skill alone does not install MCP servers, enable hooks, apply the optional templates, or configure Unsnooze/Jev. An audit can propose in-scope changes when requested; executable integrations need explicit selection and verification.
+
+To inspect the bundled executable without enabling Jev, install its dependencies from `unsnooze/` with `npm ci`, then run `node bin/unsnooze.js experiment jev status`. The public `npm install -g unsnooze` package is the upstream release and does not contain this fork's checkpoint/Jev changes. See the [fork instructions](unsnooze/README.md) before installing it into an agent environment.
 
 ## Install for Codex
 
@@ -58,6 +62,12 @@ Invoke it with:
 
 The shared frontmatter uses only fields supported by both products. Claude-specific agent templates live under `workspace-inspector/assets/claude/`; Codex-specific templates live under `workspace-inspector/assets/codex/`.
 
+The [Claude harness review](CLAUDE_HARNESS_REVIEW_2026-09.md) records compatibility fixes and remaining runtime checks. The optional [Opus 5.5 overlay](workspace-inspector/references/claude-opus-5-5.md) separates model guidance from API integration changes. Shared `AGENTS.md` rules need verified native discovery or an explicit `@AGENTS.md` import; see the [Claude setup guide](workspace-inspector/references/claude-code.md). The templates do not install your local workflow skills.
+
+## Why there are no bundled hooks
+
+This skill inspects a workspace and recommends changes; it has no action that must run on every session or tool event. Both Codex and Claude Code support hooks, but they execute code and need an event, a failure policy, and activation checks. Native instruction and skill discovery does not need a startup hook. The separate Unsnooze fork implements a Claude `StopFailure` hook for limit recovery; that hook is not installed by this skill. See the [current review](HARNESS_REVIEW_2026-10.md) before adding a hook.
+
 ## How the audit chooses a path
 
 1. Inspect what is active in the current workspace, not just which files exist.
@@ -96,6 +106,11 @@ workspace-inspector/
 └── assets/
     ├── codex/
     └── claude/
+unsnooze/
+├── bin/ and src/         # executable fork
+├── test/                 # regression tests
+├── docs/SPEC.ru.md       # design and acceptance criteria
+└── LICENSE               # upstream MIT license and attribution
 ```
 
 ## Safety model
@@ -113,7 +128,7 @@ An audit-only request remains read-only. For implementation requests, the skill 
 - [Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 - [Claude Code directory layout](https://code.claude.com/docs/en/claude-directory)
 
-The Codex documentation and research links in the evidence basis were re-checked on 2026-09-25. The Claude Code links and feature names were checked on 2026-09-20. Both products evolve quickly; re-check official documentation before relying on version-sensitive fields.
+The Codex and Claude Code setup and hooks guidance was re-checked on 2026-10-08; see the [current harness review](HARNESS_REVIEW_2026-10.md). Model-specific Opus 5.5 guidance was checked on 2026-09-27. Local CLI versions at review were Codex 0.160.1 and Claude Code 2.1.30; newer documented behavior was not verified in those runtimes. Re-check official documentation before relying on version-sensitive fields.
 
 ## License
 

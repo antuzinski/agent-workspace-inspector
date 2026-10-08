@@ -1,0 +1,90 @@
+{
+  "name": "unsnooze",
+  "private": true,
+  "bundledFork": true,
+  "version": "1.19.0",
+  "description": "Automatically resume Claude Code, Codex CLI, Grok, Qwen Code, Kimi CLI, OpenCode, Antigravity, and Cursor CLI sessions when 5-hour or weekly usage limits reset—on macOS, Linux and Windows, with or without a terminal multiplexer.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "codex",
+    "codex-cli",
+    "openai",
+    "anthropic",
+    "grok",
+    "xai",
+    "qwen",
+    "qwen-code",
+    "kimi",
+    "kimi-cli",
+    "moonshot",
+    "opencode",
+    "antigravity",
+    "cursor",
+    "cursor-cli",
+    "cursor-agent",
+    "antigravity-cli",
+    "gemini",
+    "google",
+    "openrouter",
+    "chatgpt",
+    "usage-limit",
+    "usage limit",
+    "rate-limit",
+    "rate limit",
+    "5-hour limit",
+    "weekly limit",
+    "auto-resume",
+    "auto-retry",
+    "resume",
+    "retry",
+    "tmux",
+    "zellij",
+    "herdr",
+    "ai-agents",
+    "agentic-coding",
+    "cli",
+    "developer-tools",
+    "windows",
+    "powershell",
+    "claude-design",
+    "mcp",
+    "headless",
+    "wsl",
+    "cmux"
+  ],
+  "author": "Saaransh Menon <saaransh.dev2811@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saaranshM/unsnooze.git"
+  },
+  "bugs": {
+    "url": "https://github.com/saaranshM/unsnooze/issues"
+  },
+  "homepage": "https://unsnooze.dev",
+  "type": "module",
+  "bin": {
+    "unsnooze": "bin/unsnooze.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "docs/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "ink": "^7.1.1",
+    "picocolors": "^1.1.1",
+    "react": "^19.2.7"
+  }
+}
