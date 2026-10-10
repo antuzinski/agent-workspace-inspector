@@ -39,6 +39,8 @@ For each item, identify:
 
 Restart or start a fresh session when the platform loads configuration only at session start.
 
+Use a reproducible evidence ladder: configuration and discovery rules establish eligibility; session diagnostics or a trace establish loading/invocation; a relevant action and its output establish execution; an accepted artifact or an objective outcome check establishes task success. Record file/line or event/time, scope and missing evidence for each claim. Asking an agent to summarize its rules is only a supporting signal. Do not classify a correctly placed file as observed-active without session evidence. Inspect only the trace interval needed for the question; do not load whole histories by default.
+
 ## 4. Check context hygiene
 
 Move content out of always-on instructions when it is:
@@ -72,7 +74,7 @@ For workflow and effectiveness claims, read [evidence-basis.md](evidence-basis.m
 
 ## 7. Report minimum actions
 
-Lead with actions that have a predictable benefit without an A/B experiment:
+Lead with demonstrated compatibility problems. Keep expected quality or cost benefits separate from proven corrections:
 
 1. delete stale references and unreachable configuration;
 2. resolve direct conflicts and invalid paths;
@@ -82,3 +84,5 @@ Lead with actions that have a predictable benefit without an A/B experiment:
 6. leave model tuning and stylistic preferences as optional.
 
 For each material recommendation state the chosen path, strongest viable alternative, deciding criterion, expected effect, evidence and its limits, scope, requirements to preserve, reversibility, confidence, and verification method. Keep the report compact for routine audits.
+
+For component selection use [component-selection.md](component-selection.md). Measure effectiveness from normal authorized work when possible: group comparable task types and record outcome, rework, elapsed time and available usage. No dedicated benchmark tasks are required. Before/after differences with changed tasks or models are observational, not proof of causation. Keep cached input, uncached input and output separate; missing counters are unknown. Never translate text bytes or event counts directly into billed tokens or subscription limits.

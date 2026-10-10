@@ -29,7 +29,7 @@ If the user supplies a GitHub repository as a harness or research reference, ins
 
 Return a compact evidence table with these states:
 
-- `active`: loaded from the current working directory;
+- `active`: observed as loaded or invoked in the relevant session and scope; record the evidence;
 - `shadowed`: valid but overridden by a more specific source;
 - `unreachable`: stored where the platform will not discover it;
 - `stale`: references a missing plugin, skill, agent, model, hook, or server;
@@ -63,6 +63,10 @@ Before recommending a migration:
 5. Distinguish platform documentation, empirical research, project or author reports, local observations, engineering inference, and user preferences. Documentation establishes supported behavior, not that a workflow improves quality or cost. For evidence and limits, read [references/evidence-basis.md](references/evidence-basis.md) when recommending workflow, skills, routing, or effectiveness claims.
 
 If evidence does not show a material advantage for migration, recommend keeping the current setup or making a narrower change. Do not treat repository popularity, a polished template, or the fact that this harness is available as evidence that it is better for this user.
+
+When choosing components from this repository, read [references/component-selection.md](references/component-selection.md). The current Codex export is in `../harness/` in a full checkout; it is not installed with the inspector skill. If only the skill is available, consult the linked source or report the missing candidate files. Do not load every candidate skill to perform an initial inventory.
+
+For each proposed component, connect a concrete user problem to evidence, the selected files, dependencies and overhead, expected benefit, limitations, activation check and rollback. Explicitly say what to skip. Missing evidence is `unknown`, not evidence that the user needs our component. Agent self-report, a saved checkpoint, and a tool-call count alone do not prove adherence, recovery, or task quality.
 
 ## Routing baseline
 

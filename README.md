@@ -8,6 +8,12 @@ The repository contains one cross-platform skill and separate, clearly labeled t
 
 It also includes a [bundled Unsnooze fork](unsnooze/README.md) with durable Codex checkpoints, recovery support, and an optional Jev checkpoint experiment. This is a separate executable component: installing the inspector skill does not install or activate Unsnooze, Jev, or its hooks. The bundled fork retains the [upstream Unsnooze MIT license](unsnooze/LICENSE) and its author's attribution.
 
+## Current harness and component selection
+
+The [current Codex harness snapshot](harness/README.md) includes selective workflow/product/editorial skills, agent definitions and experimental context/route handlers. Read its known conflicts and verification limits before use. The [component catalog](workspace-inspector/references/component-selection.md) explains when to adopt each part or leave it out. Installing the inspector alone does not install these components.
+
+To authorize implementation after reviewing an audit, explicitly ask: “Apply the recommended reversible changes within the listed scope, preserving my existing requirements.”
+
 ## What it does
 
 - inventories the configuration that can actually load from the current working directory;
@@ -42,7 +48,7 @@ Or copy `workspace-inspector/` to one of these locations:
 Invoke it with:
 
 ```text
-$workspace-inspector Audit this workspace against the harness in this GitHub repository. Compare keeping, targeted changes, merging, and replacing; explain the choice with evidence and its limits. Apply the best-fit reversible changes, including full replacement if it is genuinely the better fit, while preserving my requirements.
+$workspace-inspector Audit this workspace against the harness in this GitHub repository. Compare keeping, targeted changes, merging, and replacing; explain the choice with evidence and its limits. Report the recommended components and what to skip, with evidence, dependencies, overhead, activation checks and rollback. Do not change files.
 ```
 
 ## Install for Claude Code
@@ -64,7 +70,7 @@ The shared frontmatter uses only fields supported by both products. Claude-speci
 
 The [Claude harness review](CLAUDE_HARNESS_REVIEW_2026-09.md) records compatibility fixes and remaining runtime checks. The optional [Opus 5.5 overlay](workspace-inspector/references/claude-opus-5-5.md) separates model guidance from API integration changes. Shared `AGENTS.md` rules need verified native discovery or an explicit `@AGENTS.md` import; see the [Claude setup guide](workspace-inspector/references/claude-code.md). The templates do not install your local workflow skills.
 
-## Why there are no bundled hooks
+## Why the inspector does not install hooks
 
 This skill inspects a workspace and recommends changes; it has no action that must run on every session or tool event. Both Codex and Claude Code support hooks, but they execute code and need an event, a failure policy, and activation checks. Native instruction and skill discovery does not need a startup hook. The separate Unsnooze fork implements a Claude `StopFailure` hook for limit recovery; that hook is not installed by this skill. See the [current review](HARNESS_REVIEW_2026-10.md) before adding a hook.
 

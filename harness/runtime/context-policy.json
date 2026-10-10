@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "max_uncached_input_per_turn": 200000,
+  "warn_uncached_input_per_turn": 120000,
+  "max_input_per_turn": 2000000,
+  "max_output_per_turn": 24000,
+  "max_tool_calls_per_turn": 90,
+  "max_spawns_per_turn": 6,
+  "max_brief_chars": 12000,
+  "max_tool_result_chars": 24000,
+  "max_unbounded_file_bytes": 24000,
+  "default_worker_model": "gpt-6.1-sol",
+  "default_worker_effort": "medium",
+  "worker_report_tokens": 1200,
+  "compact_at_tokens": 80000,
+  "tool_output_token_limit": 4000
+}
