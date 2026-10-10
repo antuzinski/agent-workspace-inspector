@@ -9,7 +9,7 @@ The project folder, not a chat history, carries state between Codex and Claude. 
 
 ## At the start
 
-1. Read the project instructions: `AGENTS.md`, then `CLAUDE.md` if present. When both exist, follow `CLAUDE.md` for Claude-specific points and `AGENTS.md` for everything shared. Ignore Codex-only mechanics (Luna, Astra, sol-reviewer, `runtime.mjs`, Unsnooze checkpoint commands); translate roles to bounded-worker and critical-reviewer.
+1. Read the project instructions (shared durable rules belong in `AGENTS.md`, because Codex reads only that file): `AGENTS.md`, then `CLAUDE.md` if present. When both exist, follow `CLAUDE.md` for Claude-specific points and `AGENTS.md` for everything shared. Ignore Codex-only mechanics (Luna, Astra, sol-reviewer, `runtime.mjs`, Unsnooze checkpoint commands); translate roles to bounded-worker and critical-reviewer.
 2. Read `PROJECT_OVERVIEW.md`: the summary and the last two or three entries under `## Лента обновлений`. Read older entries only when the task depends on them.
 3. If the folder is a git repository, check `git status` and the last ten commits.
 4. Before acting, state in one or two sentences where the project stands and what you will do next. Ask only if the recorded state contradicts the request.
@@ -28,10 +28,10 @@ Skip this for advice-only chats and one-off tasks.
 **Статус:** Готово | В работе | Заблокировано
 - **Сделано:** what changed, with file names
 - **Результат:** what is now true or decided, and why
-- **Дальше:** only a concrete next step
+- **Дальше:** concrete next step
 ```
 
-Number entries sequentially, use the local date, and keep each entry short. Save artifacts as files in the project (for example `docs/`), not only in the reply.
+Include the **Дальше:** bullet only when there is a concrete next step. Number entries sequentially, use the local date, and keep each entry short. Add version labels only for real releases. Save artifacts as files in the project (for example `docs/`), not only in the reply.
 3. If the folder is a git repository and the user allows commits, commit before the user switches tools. Never commit without permission.
 
 ## Boundaries

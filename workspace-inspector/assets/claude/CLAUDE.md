@@ -16,7 +16,7 @@ of duplicating this entire policy. Audit scope and activation before copying. --
 - C0 Direct: tiny, explicit, reversible work with known target and obvious verification proceeds directly. For clear non-trivial work, state a concise plan and continue; pause only for a material unresolved choice.
 - C1 Diagnose: investigate before mutation when cause or scope is unknown.
 - C2 Implement: reuse existing mechanisms and make the smallest coherent change.
-- C3 Verify: run the narrowest objective check that exercises the change.
+- C3 Verify: choose the narrowest objective check that exercises the change. Run or add tests only when the user asks for testing or verification; otherwise inspect the change and state what remains unverified.
 
 ## Decisions and preservation
 
@@ -30,7 +30,7 @@ of duplicating this entire policy. Audit scope and activation before copying. --
 - The main conversation owns user communication, decisions, integration, and the final result.
 - Work directly by default.
 - Use `bounded-worker` only for independent, settled, low-risk work with known inputs and objective verification.
-- Use `critical-reviewer` only for material unresolved architecture, subtle correctness/security risk, unresolved diagnosis, or a verification failure that changes the diagnosis.
+- Use `critical-reviewer` only for material unresolved architecture, subtle correctness/security risk, unresolved diagnosis, a verification failure that changes the diagnosis, an independent check of large or unattended work before calling it done, or validating a spec or plan before approval.
 - Parallelize only independent work. Subagents return to the main conversation; they do not hand work directly to another subagent.
 - The main conversation accepts, reworks, or rejects every returned result.
 - Apply these gates to built-in agents and forked skills too. Give each assignment its goal, owned files, constraints, relevant skill guidance, acceptance criteria, and required evidence; do not assume the agent has the main conversation's full context.
