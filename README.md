@@ -1,10 +1,23 @@
 # Agent Workspace Inspector
 
-A portable skill for auditing and improving an AI coding workspace in **OpenAI Codex** or **Claude Code**.
+Find out which rules and skills your **Codex or Claude Code** needs, what already works, and what is worth changing.
 
-It checks persistent instructions, skills, agent definitions, MCP servers, hooks, configuration scope, routing rules, handoffs, checkpoints, verification, and optional telemetry. It compares the active setup with the repository's harness and recommends whether to keep, selectively change, merge, or replace it. The harness is a candidate baseline, not an automatic replacement.
+Ask your agent to inspect its setup. It reads the relevant settings, finds conflicts, and explains specific changes. If nothing needs changing, it should say so. Our harness — the rules, skills, and tools that guide an agent — is one option to compare with your current setup.
 
-The repository contains one cross-platform skill and separate, clearly labeled templates for Codex and Claude Code.
+For example, one rule may require a helper for every task while another says to handle simple tasks directly. The inspector identifies the conflict and suggests a consistent rule. With task history available, it also checks whether the conflict caused problems. Without that evidence, the impact remains a hypothesis.
+
+[Русская версия](README.ru.md)
+
+## Codex and Claude support
+
+| Component | Codex | Claude Code |
+|---|---|---|
+| Shared inspection skill | Updated | Updated: uses the same skill |
+| Platform rules and helper templates | Included | Included; see the [review history](CLAUDE_HARNESS_REVIEW_2026-09.md) |
+| Current setup snapshot, October 10, 2026 | Published in [harness](harness/README.md) | A complete port of this snapshot has not been made |
+| Automatic instruction selection and context limits | Experimental source; operation on real tasks is not yet confirmed | Port and operation have not been verified |
+
+**The inspector is updated for both platforms. The full current setup is published only for Codex.**
 
 It also includes a [bundled Unsnooze fork](unsnooze/README.md) with durable Codex checkpoints, recovery support, and an optional Jev checkpoint experiment. This is a separate executable component: installing the inspector skill does not install or activate Unsnooze, Jev, or its hooks. The bundled fork retains the [upstream Unsnooze MIT license](unsnooze/LICENSE) and its author's attribution.
 
@@ -14,17 +27,13 @@ The [current Codex harness snapshot](harness/README.md) includes selective workf
 
 To authorize implementation after reviewing an audit, explicitly ask: “Apply the recommended reversible changes within the listed scope, preserving my existing requirements.”
 
-## What it does
+## What you get
 
-- inventories the configuration that can actually load from the current working directory;
-- finds stale, duplicate, conflicting, unreachable, or overly broad instructions;
-- separates always-on rules from on-demand skills and deterministic hooks;
-- recommends direct work, bounded delegation, and critical review gates;
-- explains material recommendations using platform documentation, research, local evidence, and clearly labeled inference;
-- preserves useful existing requirements when adapting or replacing rules;
-- defines compact handoffs and event-based checkpoints;
-- optionally adds lightweight telemetry markers without inventing token counts;
-- verifies activation after changes.
+- What already works well and should stay.
+- Which problems were found and what supports each finding.
+- What to change or install, and what to skip.
+- The dependencies and extra work each change adds.
+- How to check the result and restore the previous setup.
 
 Installing this skill alone does not install MCP servers, enable hooks, apply the optional templates, or configure Unsnooze/Jev. An audit can propose in-scope changes when requested; executable integrations need explicit selection and verification.
 
@@ -79,8 +88,8 @@ This skill inspects a workspace and recommends changes; it has no action that mu
 1. Inspect what is active in the current workspace, not just which files exist.
 2. Record the user's goal, constraints, and existing behavior worth preserving.
 3. Compare keeping the setup, targeted edits, merging selected harness parts, and replacing the relevant setup.
-4. Explain the recommendation, strongest viable alternative, deciding criterion, evidence and its limits, risks, preservation plan, and verification. Link sources for material research and platform claims; label unsupported causal explanations as inference.
-5. Apply when the user's request authorizes implementation. A conditional request such as “apply the best fit” or “replace my setup if this harness fits” authorizes choosing the route and making reversible, in-scope changes, including full replacement when justified; do not ask for the same permission again. Ask only for a materially unresolved choice or an irreversible/external action outside the authorization.
+4. Explain the choice, evidence, alternatives, and limits. For example, a helper may speed up independent work but adds context transfer and result integration. State when evidence is missing.
+5. Apply changes and agreed checks within your request. If you already authorized those reversible changes, the agent does not need to ask for the same permission again. It asks when a blocking choice or missing authorization remains.
 
 The research basis and its limitations are summarized in [`workspace-inspector/references/evidence-basis.md`](workspace-inspector/references/evidence-basis.md). The skill distinguishes platform documentation from studies of effectiveness: supported features do not by themselves prove improved quality, cost, or speed.
 
@@ -96,11 +105,12 @@ Run the audit and choose the fitting path first. Apply either platform template 
 6. checkpoints only at real dependency, risk, pause, or delegation boundaries;
 7. proportionate verification before completion.
 
-Model names are intentionally not hard-coded. Optional comments show where to select a cheaper worker or stronger reviewer when those models are available in your account.
+The generic templates leave model choice to your environment. The separate current snapshot in `harness/agents/` records our configured model names; check their availability before adopting them.
 
 ## Repository layout
 
 ```text
+harness/                 # current Codex snapshot; not a full Claude port
 workspace-inspector/
 ├── SKILL.md
 ├── agents/openai.yaml
