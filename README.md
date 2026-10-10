@@ -1,79 +1,81 @@
+![Agent Workspace Inspector](assets/github-header.png)
+
 # Agent Workspace Inspector
 
-Find out which rules and skills your **Codex or Claude Code** needs, what already works, and what is worth changing.
+Помогает разобраться, какие правила и навыки нужны вашему **Codex или Claude Code**, что уже работает и что стоит исправить.
 
-Ask your agent to inspect its setup. It reads the settings, finds conflicts, and explains specific changes. If nothing needs changing, it should say so.
+Вы просите агента проверить настройки. Он читает их, находит противоречия и предлагает изменения с объяснением. Если менять ничего не нужно, он должен так и сказать.
 
-For example, one rule may require a helper for every task while another says to handle simple tasks directly. The inspector identifies the conflict and suggests a consistent rule. If task history is available, it also checks whether the conflict caused problems in practice.
+Например: одно правило требует помощника для каждой задачи, другое — выполнять простые задачи самостоятельно. Инспектор покажет конфликт и предложит согласовать правила. Если доступна история работы, проверит, возникала ли проблема на практике.
 
-[Русская версия](README.ru.md)
+[English](README.en.md)
 
-## What you get
+## Что вы получите
 
-- What already works well and should stay.
-- Which problems were found and what supports each finding.
-- What to change or install, and what to skip.
-- How to check the result and restore the previous setup.
+- Что уже настроено удачно и стоит сохранить.
+- Где проблема и чем она подтверждается.
+- Что изменить или установить, а что пропустить.
+- Как проверить результат и вернуть прежние настройки.
 
-Our **harness — the rules, skills, and tools that guide an agent —** is one option to compare against your setup. You can adopt a part, combine it with your rules, or keep your existing system.
+Начните с инспектора. Он сравнит вашу среду с нашим **harness — набором правил, навыков и инструментов для работы агента**. После проверки выберите, что взять: полезную часть, сочетание с вашими правилами или ничего.
 
-[Architecture overview (Russian)](ARCHITECTURE.md): skill selection, delegation, tracing, and Unsnooze recovery.
+[Схема архитектуры](ARCHITECTURE.md): как выбираются навыки, когда нужны помощники и как связаны трассировка и Unsnooze.
 
-## Get started
+## Как начать
 
-Ask Codex or Claude Code:
+Попросите Codex или Claude Code:
 
 ```text
-Install the workspace-inspector skill from https://github.com/antuzinski/agent-workspace-inspector. The skill is in the workspace-inspector folder.
+Установи навык workspace-inspector из репозитория https://github.com/antuzinski/agent-workspace-inspector. Навык находится в папке workspace-inspector.
 ```
 
 ### Codex
 
-For manual installation, copy `workspace-inspector/` to either:
+При ручной установке скопируйте папку `workspace-inspector/`:
 
-- `~/.codex/skills/workspace-inspector/` for all your projects;
-- `<repo>/.agents/skills/workspace-inspector/` for a specific project.
+- в `~/.codex/skills/workspace-inspector/` — для всех проектов;
+- в `<repo>/.agents/skills/workspace-inspector/` — только для выбранного проекта.
 
-First request:
+Первый запрос:
 
 ```text
-$workspace-inspector Review my setup. Explain what works well, where there are problems, and which parts of this repository would help me. Explain your choices. Do not change files yet.
+$workspace-inspector Проверь мои настройки. Объясни, что работает хорошо, где есть проблемы и какие части этого репозитория мне пригодятся. Обоснуй выбор. Пока файлы не меняй.
 ```
 
 ### Claude Code
 
-For manual installation, copy `workspace-inspector/` to either:
+При ручной установке скопируйте папку `workspace-inspector/`:
 
-- `~/.claude/skills/workspace-inspector/` for all your projects;
-- `<repo>/.claude/skills/workspace-inspector/` for a specific project.
+- в `~/.claude/skills/workspace-inspector/` — для всех проектов;
+- в `<repo>/.claude/skills/workspace-inspector/` — только для выбранного проекта.
 
-First request:
+Первый запрос:
 
 ```text
-/workspace-inspector Review my setup. Explain what works well, where there are problems, and which parts of this repository would help me. Explain your choices. Do not change files yet.
+/workspace-inspector Проверь мои настройки. Объясни, что работает хорошо, где есть проблемы и какие части этого репозитория мне пригодятся. Обоснуй выбор. Пока файлы не меняй.
 ```
 
-After the review, you can ask the agent to apply selected changes.
+После разбора можно попросить применить выбранные изменения.
 
-## How the agent chooses changes
+## Как агент выбирает изменения
 
-1. Learns which tasks you work on.
-2. Checks your rules and skills: what gets used, what repeats, and what conflicts.
-3. Chooses what to keep, fix, or add.
-4. Explains how the changes will help with your tasks.
-5. Makes the changes and checks them when you ask it to.
+1. Узнаёт, какие задачи вы решаете.
+2. Проверяет ваши правила и навыки: что используется, где повторы и противоречия.
+3. Выбирает, что оставить, исправить или добавить.
+4. Объясняет, как это поможет в ваших задачах.
+5. По вашей просьбе вносит изменения и проверяет их работу.
 
-## Repository contents
+## Что лежит в репозитории
 
-| Location | Purpose |
+| Где | Для чего |
 |---|---|
-| [workspace-inspector](workspace-inspector/SKILL.md) | The inspection skill |
-| [harness](harness/README.md) | Current Codex rules, five skills, three helper roles, and experimental event handlers |
-| [Codex templates](workspace-inspector/assets/codex/) / [Claude templates](workspace-inspector/assets/claude/) | Starting points to adapt to your environment |
-| [Unsnooze](unsnooze/README.md) | A separate program that saves task state and helps resume work; includes an optional Jev evaluation experiment |
+| [workspace-inspector](workspace-inspector/SKILL.md) | Сам навык анализа настроек |
+| [harness](harness/README.md) | Текущие правила Codex, пять навыков, три роли помощников и экспериментальные обработчики |
+| [Шаблоны Codex](workspace-inspector/assets/codex/) / [Claude](workspace-inspector/assets/claude/) | Заготовки для адаптации к вашей среде |
+| [Unsnooze](unsnooze/README.md) | Отдельная программа: сохраняет состояние задачи и помогает продолжить работу; включает необязательный эксперимент оценки Jev |
 
-Start with the inspector. Choose other parts based on the problems it finds.
+Для начала достаточно инспектора. Остальные части выбирайте по найденным проблемам.
 
-## License
+## Лицензия
 
-[MIT](LICENSE). The included Unsnooze retains its [upstream license and attribution](unsnooze/LICENSE).
+[MIT](LICENSE). Сохранены [лицензия и авторство исходного Unsnooze](unsnooze/LICENSE).
