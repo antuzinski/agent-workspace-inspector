@@ -23,7 +23,7 @@ Before coding, check whether the requested outcome already exists. Preserve the 
 
 ### Delegation
 
-Work in the root task by default. Use luna-worker only for a bounded, independent, low-risk unit with clear inputs, ownership, output, and objective verification when expected savings justify the handoff and review. Use sol-reviewer only for the global escalation conditions. Do not pass work agent-to-agent.
+Work in the root task by default. Follow the global routing policy for model and role selection: Luna for suitable bounded execution, Astra for architecture or consequential uncertainty, and sol-reviewer for a separately requested review. Preserve explicitly selected roles. Do not pass work agent-to-agent.
 
 ### Handoffs and checkpoints
 
@@ -32,6 +32,14 @@ Follow the global AGENTS.md format. Checkpoint only at material uncertainty/depe
 ## C3 - Verify
 
 Use the narrowest objective check that exercises the change, where applicable. Confirm the requested behavior, scope, preserved invariants, and absence of newly discovered unresolved risks. Existing checks are insufficient when they cannot exercise the changed behavior. After relevant checks pass, stop unless a failure or new risk justifies further work.
+
+Run or add tests only when the user requests testing or verification. Otherwise inspect the change and state what remains unverified.
+
+## Conditional guidance
+
+- If a bug's cause remains unclear or an earlier fix failed, read [references/diagnosing-bugs.md](references/diagnosing-bugs.md).
+- When splitting substantial implementation across people, agents, or sessions, read [references/task-slicing.md](references/task-slicing.md). A small change needs no task board.
+- If recurring ambiguity in domain terms changes behavior, record the agreed meaning and one boundary example in the project's existing documentation. Record a design decision only when it is costly to reverse, its reason would be unclear later, and real alternatives were considered. Include choice, reason, tradeoff and condition for revisiting it; create no glossary or decision log by default.
 
 ## Context budget
 

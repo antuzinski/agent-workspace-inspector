@@ -18,7 +18,7 @@
 //     session sweep skips headless rather than claiming to own anything.
 
 import { spawn } from 'node:child_process';
-import { mkdirSync, openSync } from 'node:fs';
+import { mkdirSync, openSync, closeSync, statSync, readSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { HEADLESS_LOG_DIR } from '../config.js';
@@ -105,13 +105,15 @@ export function createHeadless({
       mkdirSync(logDir, { recursive: true, mode: 0o700 });
       const logPath = join(logDir, `${sessionName}.log`);
       const fd = openSync(logPath, 'a', 0o600);
-      const child = spawner(launchSpec.file, launchSpec.args || [], {
+      const logOffset = statSync(logPath).size;
+      let child;
+      try { child = spawner(launchSpec.file, launchSpec.args || [], {
         cwd,
         detached: true,
         stdio: ['ignore', fd, fd],
         env: { ...env, ...launchSpec.env },
         windowsHide: true,
-      });
+      }); } finally { closeSync(fd); }
       if (typeof child?.unref === 'function') child.unref();
       if (!child?.pid) {
         throw new Error(`unsnooze: headless launch of ${launchSpec.file} produced no pid`);
@@ -130,7 +132,33 @@ export function createHeadless({
           });
         });
       }
-      return { pane: `${PID_PREFIX}${child.pid}`, paneOwner: null, session: sessionName };
+      return { pane: `${PID_PREFIX}${child.pid}`, paneOwner: null, session: sessionName,
+        headlessLogPath: logPath, headlessLogOffset: logOffset };
+    },
+
+    readResumeOutcome(rec) {
+      if (!rec.headlessLogPath || !Number.isFinite(rec.headlessLogOffset)) return null;
+      let fd;
+      try {
+        const size = statSync(rec.headlessLogPath).size;
+        const from = Math.max(rec.headlessLogOffset, size - 512 * 1024);
+        const buffer = Buffer.alloc(Math.max(0, size - from));
+        fd = openSync(rec.headlessLogPath, 'r');
+        const length = readSync(fd, buffer, 0, buffer.length, from);
+        const lines = buffer.subarray(0, length).toString('utf8').split('\n');
+        if (from > rec.headlessLogOffset) lines.shift();
+        lines.pop(); // incomplete final JSON line is not evidence
+        let outcome = null;
+        for (const line of lines) {
+          let event;
+          try { event = JSON.parse(line); } catch { continue; }
+          if (event.type === 'turn.completed') outcome = { status: 'completed' };
+          else if (event.type === 'turn.failed') outcome = { status: 'failed', error: event.error };
+          else if (event.type === 'turn.started' && !outcome) outcome = { status: 'inProgress' };
+        }
+        return outcome;
+      } catch { return null; }
+      finally { if (fd !== undefined) closeSync(fd); }
     },
 
     // Nothing to wrap into: the user's own terminal is the session. Returning

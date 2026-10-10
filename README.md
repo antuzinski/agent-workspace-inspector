@@ -17,6 +17,8 @@ For example, one rule may require a helper for every task while another says to 
 
 Our **harness — the rules, skills, and tools that guide an agent —** is one option to compare against your setup. You can adopt a part, combine it with your rules, or keep your existing system.
 
+[Architecture overview (Russian)](ARCHITECTURE.md): skill selection, delegation, tracing, and Unsnooze recovery.
+
 ## Get started
 
 Ask Codex or Claude Code:

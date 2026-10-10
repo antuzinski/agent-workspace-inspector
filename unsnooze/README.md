@@ -895,6 +895,28 @@ Yes — reset times are stored as absolute timestamps and checked every 30
 seconds, so a laptop that slept through the reset resumes on the next tick,
 and dead panes are reopened by session id in a fresh multiplexer pane.
 
+For local Codex desktop chats, this fork sends continuation through the running
+desktop application and keeps the chat's model settings. It does not open a
+second CLI writer for that chat. If the application is unavailable, the stop
+remains queued until it returns. This integration uses the installed desktop
+tool relay; availability depends on the installed application version.
+
+After sleep, the watcher also considers unread stops since its previous scan.
+It remembers running desktop turns and retries explicit network failures with
+increasing delays. A still-running turn is monitored rather than sent another
+message. A completed turn is not replayed. User cancellations and approval
+requests do not trigger automatic continuation.
+
+If a send loses its reply, Unsnooze checks whether a new turn appeared before
+resending. If delivery remains unconfirmed, it pauses automatic resend and
+notifies you. Other chats continue independently. You can explicitly retry a
+tracked stopped, failed, cancelled, or uncertain chat with
+`unsnooze resume-now <session-id>`; the retry counters are reset. Inspect an
+uncertain chat first, because a lost reply can mean the message was delivered.
+
+
+The source installation confirmed JavaScript syntax and communication between the running daemon and desktop app. Real sleep and VPN loss were not reproduced; end-to-end recovery remains unverified. Desktop network monitoring covers pinned and recent local chats, plus previously observed running turns; it is not a scan of every historical chat.
+
 ## Development
 
 ```sh

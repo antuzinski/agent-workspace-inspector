@@ -209,7 +209,8 @@ export function selectKeys(state, idOrAll, statuses = ['stopped']) {
 
 export async function cmdResumeNow(idOrAll) {
   const state = readState();
-  const keys = selectKeys(state, idOrAll);
+  const keys = selectKeys(state, idOrAll, idOrAll && idOrAll !== '--all'
+    ? ['stopped', 'resuming', 'failed', 'cancelled'] : ['stopped']);
   if (keys.length === 0) { console.log('unsnooze: no matching stopped sessions.'); return 1; }
   // The commenter's "show me the diff": held records print what moved since
   // the stop-time baseline before we wake them. Best-effort, never blocking.
@@ -237,6 +238,15 @@ export function markResumeNow(keys) {
   updateState(s => {
     for (const key of keys) {
       if (s.sessions[key]) {
+        const rec = s.sessions[key];
+        if (rec.status !== 'stopped') {
+          rec.status = 'stopped';
+          rec.resumeEpisodeAt = null;
+          rec.desktopResume = null;
+        }
+        rec.attempts = 0;
+        rec.verifyRetries = 0;
+        rec.connectionRetries = 0;
         s.sessions[key].resetAt = Date.now();
         s.sessions[key].manual = true;   // explicit user action beats autoResume=off + workspaceGuard
         delete s.sessions[key].workspaceHold;

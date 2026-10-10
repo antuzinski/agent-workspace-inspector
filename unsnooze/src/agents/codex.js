@@ -11,7 +11,8 @@
 // the overload path, never the ledger.
 
 import { openSync, readSync, closeSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, delimiter } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { CODEX_DIR } from '../config.js';
 
 // Since the 2026 unified ChatGPT desktop app absorbed the Codex app, the codex
@@ -22,8 +23,8 @@ import { CODEX_DIR } from '../config.js';
 export const CHATGPT_CODEX_BIN = '/Applications/ChatGPT.app/Contents/Resources/codex';
 
 function codexOnPath(env = process.env) {
-  return (env.PATH || '').split(':').some(dir => {
-    try { return dir && existsSync(join(dir, 'codex')); } catch { return false; }
+  return (env.PATH || '').split(delimiter).some(dir => {
+    try { return dir && existsSync(join(dir, process.platform === 'win32' ? 'codex.exe' : 'codex')); } catch { return false; }
   });
 }
 
@@ -31,6 +32,15 @@ export function resolveCodexBin({ env = process.env, onPath = () => codexOnPath(
   if (env.UNSNOOZE_CODEX_BIN) return env.UNSNOOZE_CODEX_BIN;
   if (onPath()) return 'codex';
   if (exists(CHATGPT_CODEX_BIN)) return CHATGPT_CODEX_BIN;
+  if (process.platform === 'win32') {
+    try {
+      const location = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+        '(Get-AppxPackage -Name OpenAI.Codex | Select-Object -First 1).InstallLocation'],
+      { encoding: 'utf8', timeout: 5000, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      const bundled = location && join(location, 'app', 'resources', 'codex.exe');
+      if (bundled && exists(bundled)) return bundled;
+    } catch { /* no installed desktop; normal spawn error remains visible */ }
+  }
   return 'codex';   // neither — the launcher degrades gracefully on spawn error
 }
 
@@ -66,7 +76,8 @@ export const patterns = {
 // the first JSONL line carries the session cwd. Conservative: no cwd match →
 // null (the resumer then uses `codex resume --last`, which codex itself scopes
 // to the launch cwd).
-export const ROLLOUT_RE = /^rollout-.*-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl$/i;
+// Desktop rollouts may append a second UUID; capture the original session ID.
+export const ROLLOUT_RE = /^rollout-.*?-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?\.jsonl$/i;
 
 function fileHead(path, bytes = 4096) {
   let fd;
@@ -120,7 +131,9 @@ export default {
   // headless revival has no TTY at all, so it must use `codex exec resume`;
   // the interactive command otherwise exits at its first confirmation prompt.
   resumeArgs(sessionId, message, { canType = true } = {}) {
-    const command = canType ? ['resume'] : ['exec', 'resume'];
+    // Desktop workspaces need not be Git repositories. A background resume
+    // must accept the same workspace without changing file permissions.
+    const command = canType ? ['resume'] : ['exec', 'resume', '--skip-git-repo-check', '--json'];
     return {
       args: sessionId ? [...command, sessionId, message] : [...command, '--last', message],
       messageViaPane: false,

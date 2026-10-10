@@ -283,7 +283,8 @@ export function dispatchCandidate(c) {
   const existing = c.sessionId
     ? Object.values(readState().sessions).find(s => s.sessionId === c.sessionId)
     : null;
-  if (existing && existing.status === 'cancelled') return;
+  if (existing && existing.status === 'cancelled'
+    && (bannerAt == null || bannerAt <= (existing.bannerAt || existing.detectedAt))) return;
   if (existing && (existing.status === 'stopped' || existing.status === 'resuming')) {
     updateState(state => {
       const s = state.sessions[existing.key];
@@ -381,6 +382,7 @@ export function createWatcher({
   let coldStart = offsets === null;
   if (coldStart) offsets = {};
   let dirty = coldStart;
+  let lastTickAt = null;
 
   function setOffset(path, value) {
     if (offsets[path] !== value) { offsets[path] = value; dirty = true; }
@@ -445,6 +447,7 @@ export function createWatcher({
 
   return {
     async tick() {
+      const tickStartedAt = now();
       const seen = new Set();
       const candidates = [];
       const usageSamples = [];
@@ -521,12 +524,16 @@ export function createWatcher({
       // Every real transcript/rollout line carries an ISO timestamp.
       const fresh = [];
       for (const c of candidates) {
-        if (Number.isFinite(c.timestampMs) && now() - c.timestampMs <= freshnessMs) fresh.push(c);
+        // Sleep pauses timers, but timestamps keep advancing. Accept unread
+        // stops from the interval since the last tick, even after a long sleep.
+        if (Number.isFinite(c.timestampMs) && (now() - c.timestampMs <= freshnessMs
+          || (lastTickAt != null && c.timestampMs >= lastTickAt))) fresh.push(c);
         else log(`dropped stale/undatable candidate: agent=${c.agent} session=${c.sessionId || '?'} ts=${c.timestampMs}`);
       }
       for (const c of fresh) {
         try { onStop(c); } catch (err) { log(`onStop failed: ${err.message}`); }
       }
+      lastTickAt = tickStartedAt;
       return fresh.length;
     },
   };

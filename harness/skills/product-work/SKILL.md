@@ -1,6 +1,6 @@
 ---
 name: product-work
-description: Help with product discovery, market sizing, strategy choices, metrics, and unit economics. Use the relevant domain guidance for product work; pair with research-workflow when current or comparative evidence is needed.
+description: Help with product discovery, market sizing, strategy, metrics, unit economics, stakeholder questions, and ambiguous product definitions. Load only relevant guidance; pair with research-workflow when current or comparative evidence is needed.
 ---
 
 # Product work
@@ -13,5 +13,7 @@ Load selectively:
 - For market boundaries, alternatives, and TAM/SAM/SOM, read [references/market.md](references/market.md).
 - For product direction, stage-appropriate choices, and experiments, read [references/strategy.md](references/strategy.md).
 - For metric definitions, cohorts, and unit economics, read [references/metrics.md](references/metrics.md).
+- When drafting questions to obtain missing facts from a specific stakeholder or expert, read [references/questionnaire.md](references/questionnaire.md).
+- When recurring ambiguity in domain terms changes a product decision or calculation, read [references/domain-language.md](references/domain-language.md).
 
 When research is needed, use the available research workflow for sourcing and evidence handling; this skill supplies product-specific questions and checks, not a competing research procedure.

@@ -23,13 +23,13 @@ Check definitions, population and denominator, period, units, transformations, s
 
 ## R3 - Synthesize
 
-The root synthesizes by default. Use sol-reviewer only when the global escalation criteria apply, such as unresolved contradictory evidence, consequential interpretation, difficult methodology, or a valuable independent review. Supply the checkpoint and critical evidence; do not repeat the whole search without reason.
+The root synthesizes by default. Follow the global routing policy for consequential uncertainty, including contradictory evidence; use Astra when that policy calls for it. A separately requested review may use sol-reviewer. Preserve explicitly selected roles. Supply only critical evidence and the unresolved question; do not repeat the whole search without reason.
 
 ## R4 - Verify
 
 Verify material claims and calculations; match units, periods, populations, and denominators; prefer primary sources where practical; confirm citations support the claims; address material counterevidence; state unresolved uncertainty; keep conclusions within the evidence.
 
-Outcomes: PASS -> finish; MISSING_EVIDENCE -> collect; ANALYSIS_PROBLEM -> reanalyze; CRITICAL_UNCERTAINTY -> consider sol-reviewer only if the global gate is met.
+Outcomes: PASS -> finish; MISSING_EVIDENCE -> collect; ANALYSIS_PROBLEM -> reanalyze; CRITICAL_UNCERTAINTY -> apply the global escalation policy.
 
 ## Output
 

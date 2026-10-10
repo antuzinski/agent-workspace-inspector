@@ -16,6 +16,7 @@ import {
 } from './config.js';
 import { detectLimit, isBusy, modelRemedy } from './patterns.js';
 import { getAgent } from './agents/index.js';
+import { desktopCall, readDesktopThread, isDesktopRecord, isConnectionError, watchDesktopConnections } from './codex-desktop.js';
 import { parseResetTime, resetAtMs, nextProbeDelayMs } from './time-parser.js';
 import {
   readState, updateState, setStatus, dueSessions, activeStopped,
@@ -739,6 +740,7 @@ export function supersedingAnonymousRecord(rec, state = readState()) {
 }
 
 async function reopen(rec, { mux, resolveMux, agent, resumeMessage, selfCmd, onDelivered = () => {} }) {
+  if (isDesktopRecord(rec)) return resumeDesktop(rec, resumeMessage);
   const key = rec.key;
   const cutoff = rec.bannerAt ?? rec.detectedAt;
   // Anonymous records cannot be told apart, so only one of them may revive.
@@ -855,6 +857,94 @@ export async function awaitReadyAndSend(mux, pane, agent, message, {
   return 'timeout';
 }
 
+async function resumeDesktop(rec, prompt) {
+  let snapshot;
+  try { snapshot = await readDesktopThread(rec.sessionId); }
+  catch (error) {
+    transitionStopEpisode(rec, 'stopped', { resetAt: Date.now() + 30000,
+      lastError: error.message }, { expect: ['stopped'] });
+    return 'held';
+  }
+  const turn = snapshot.turns?.[0];
+  if (!claimStopForResume(rec)) return 'stale';
+  // Save intent before send. A lost reply must not cause duplicate delivery.
+  transitionStopEpisode(rec, 'resuming', { desktopResume: {
+    baselineTurnId: turn?.id || null, requestedAt: Date.now(),
+    observedTurnId: turn?.status === 'inProgress' ? turn.id : null,
+    delivery: turn?.status === 'inProgress' ? 'existing' : 'pending',
+  } }, { expect: ['resuming'] });
+  if (turn?.status === 'inProgress') return 'reopen';
+  if (turn?.status === 'completed' && turn.completedAt * 1000 > stopEpisodeAt(rec)) {
+    transitionStopEpisode(rec, 'resumed', { lastError: null, desktopResume: null,
+      bannerCleared: true, resumeEpisodeAt: null },
+      { expect: ['resuming'] });
+    return 'already-resumed';
+  }
+  try {
+    await desktopCall('send_message_to_thread', { threadId: rec.sessionId, prompt });
+    updateState(state => {
+      const current = state.sessions[rec.key];
+      if (current?.status === 'resuming' && current.desktopResume
+        && stopEpisodeAt(current) === stopEpisodeAt(rec)) current.desktopResume.delivery = 'accepted';
+    });
+  } catch (error) {
+    if (!error.deliveryUnknown) {
+      transitionStopEpisode(rec, 'stopped', { desktopResume: null,
+        resetAt: Date.now() + 60000, lastError: error.message, resumeEpisodeAt: null },
+      { expect: ['resuming'] });
+      return 'held';
+    }
+    transitionStopEpisode(rec, 'resuming', { lastError:
+      'Desktop reply lost; checking delivery before any resend' }, { expect: ['resuming'] });
+  }
+  return 'reopen';
+}
+
+async function verifyDesktop(rec) {
+  let snapshot;
+  try { snapshot = await readDesktopThread(rec.sessionId); }
+  catch (error) {
+    transitionStopEpisode(rec, 'resuming', { lastError: error.message }, { expect: ['resuming'] });
+    return 'waiting';
+  }
+  const turn = snapshot.turns?.[0], delivery = rec.desktopResume;
+  if (!turn || (turn.id === delivery.baselineTurnId && !delivery.observedTurnId)) {
+    if (!delivery.attentionNotified && Date.now() - delivery.requestedAt > 120000) {
+      notify('unsnooze: delivery unconfirmed', `${rec.cwd}: desktop has not confirmed a new turn; automatic resend paused to avoid duplicates`,
+        { context: ctxOf(rec) });
+      delivery.attentionNotified = true;
+    }
+    transitionStopEpisode(rec, 'resuming', {
+      lastError: 'Waiting for desktop turn confirmation', desktopResume: delivery,
+    }, { expect: ['resuming'] });
+    return 'waiting';
+  }
+  if (turn.status === 'failed') {
+    const network = isConnectionError(turn.error), count = (rec.connectionRetries || 0) + 1;
+    const error = JSON.stringify(turn.error || 'Desktop turn failed');
+    transitionStopEpisode(rec, network ? 'stopped' : 'failed', {
+      desktopResume: null, resumeEpisodeAt: null, lastError: error, connectionRetries: count,
+      resetAt: Date.now() + Math.min(30 * 60000, 30000 * 2 ** Math.min(count, 6)),
+    }, { expect: ['resuming'] });
+    if (!network) notify('unsnooze needs attention', error, { context: ctxOf(rec) });
+    return network ? 'waiting' : 'failed';
+  }
+  if (turn.status === 'interrupted' || turn.status === 'cancelled') {
+    transitionStopEpisode(rec, 'cancelled', { desktopResume: null,
+      lastError: 'Desktop turn interrupted; automatic resend suppressed' }, { expect: ['resuming'] });
+    return 'cancelled';
+  }
+  if (turn.status !== 'completed') {
+    transitionStopEpisode(rec, 'resuming', { desktopResume: { ...delivery, observedTurnId: turn.id },
+      lastError: null }, { expect: ['resuming'] });
+    return 'waiting';
+  }
+  const applied = transitionStopEpisode(rec, 'resumed', { desktopResume: null, lastError: null,
+    connectionRetries: 0, verifyRetries: 0, bannerCleared: true, resumeEpisodeAt: null }, { expect: ['resuming'] });
+  if (applied) notify('unsnoozed ✅', `${rec.cwd}: desktop continuation completed`, { context: ctxOf(rec) });
+  return applied ? 'resumed' : 'stale';
+}
+
 function recordVerifyRetry(rec, lastError) {
   const verifyRetries = (rec.verifyRetries || 0) + 1;
   let applied;
@@ -862,8 +952,8 @@ function recordVerifyRetry(rec, lastError) {
     const attempts = (rec.attempts || 0) + 1;
     applied = transitionStopEpisode(rec, 'stopped', {
       attempts,
-      // Same backoff (and same manual exemption) as routed retries.
-      resetAt: rec.manual ? Date.now() : Date.now() + retryBackoffMs(attempts),
+      // Manual means the first attempt is immediate, not an endless retry loop.
+      resetAt: Date.now() + retryBackoffMs(attempts),
       lastError,
       verifyRetries: 0, resumeEpisodeAt: null,
     }, { expect: ['resuming'] });
@@ -893,17 +983,31 @@ export async function verifyOne(key, { resolveMux = resolveRecordMux } = {}) {
   // in-flight status, but it advances bannerAt/detectedAt. Do not verify that
   // newer episode using an older pane action.
   if (releaseSupersededResume(key)) return 'stale';
+  if (rec.desktopResume) return verifyDesktop(rec);
   const agent = getAgent(rec.agent);
   if (!rec.pane) {
     return recordVerifyRetry(rec, 'verify: pane unavailable');
   }
   const mux = resolveMux(rec);
+  if (mux?.name === 'headless' && rec.agent === 'codex') {
+    const outcome = mux.readResumeOutcome?.(rec);
+    if (outcome?.status === 'failed' && isConnectionError(outcome.error)) {
+      const count = (rec.connectionRetries || 0) + 1;
+      transitionStopEpisode(rec, 'stopped', { resumeEpisodeAt: null, connectionRetries: count,
+        resetAt: Date.now() + Math.min(30 * 60000, 30000 * 2 ** Math.min(count, 6)),
+        lastError: JSON.stringify(outcome.error), verifyRetries: 0 }, { expect: ['resuming'] });
+      return 'waiting';
+    }
+    if (outcome?.status === 'failed') return recordVerifyRetry(rec, JSON.stringify(outcome.error));
+    if (outcome?.status !== 'completed' && await mux.paneAlive(rec.pane)) return 'waiting';
+    if (outcome?.status !== 'completed') return recordVerifyRetry(rec, 'Codex exited without confirmed turn completion');
+  }
   // Headless has no pane contents to inspect. Its old verification therefore
   // treated an empty capture as proof of success even when Codex had already
   // exited with an error. Require either a live process or a recorded clean
   // exit; a failed/unknown exit remains retryable instead of becoming a false
   // "resumed" result.
-  if (mux?.name === 'headless' && typeof mux.paneAlive === 'function') {
+  if (mux?.name === 'headless' && rec.agent !== 'codex' && typeof mux.paneAlive === 'function') {
     let alive;
     try { alive = await mux.paneAlive(rec.pane); }
     catch (err) { return recordVerifyRetry(rec, `verify liveness: ${err.message}`); }
@@ -1001,11 +1105,8 @@ export function routeDispatchOutcome(result, rec, deferCounts, { maxBusyDefers =
       }
       Object.assign(current, {
         status: 'stopped', attempts,
-        // Back off before the next attempt — a due record retried on every poll
-        // tick exhausts MAX_RESUME_ATTEMPTS in minutes. Manual records are
-        // exempt: `resume-now` promised an immediate wake, so a transient error
-        // must not silently defer it.
-        resetAt: rec.manual ? now : now + retryBackoffMs(attempts),
+        // Manual resume starts immediately; subsequent failures still back off.
+        resetAt: now + retryBackoffMs(attempts),
         lastError: current.lastError, verifyRetries: 0, resumeEpisodeAt: null,
       });
       return state;
@@ -1039,6 +1140,9 @@ export async function runResumer({
   const tickWatcher = async () => {
     if (!watcher || !getConfig('guiWatch')) return;
     try { await watcher.tick(); } catch (err) { log(`watcher tick failed: ${err.message}`); }
+    // Absence of the desktop is normal (closed app, sleep or restart). Pending
+    // records stay intact; discovery runs again on the next wall-clock tick.
+    try { await watchDesktopConnections(); } catch { /* desktop unavailable */ }
   };
   let lockWaits = 0;
   while (!acquireSingleton()) {

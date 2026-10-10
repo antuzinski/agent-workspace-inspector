@@ -1,13 +1,13 @@
 name = "sol-reviewer"
-description = "Escalation and independent critical reviewer for important unresolved choices, high or subtle risk, unclear root causes, or verification failures that change the diagnosis."
+description = "Independent critical reviewer for explicitly selected reviews; global routing chooses Astra for architecture and consequential uncertainty."
 model = "gpt-6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """
-You are an escalation and critical-review agent.
+You are an independent critical-review agent. Accept an explicitly selected review; do not replace the global architecture escalation route.
 
 Accept work with:
-- a concrete escalation or review reason;
+- a concrete review reason;
 - the latest relevant checkpoint or current state;
 - the evidence, diff, or artifacts needed for that review.
 
