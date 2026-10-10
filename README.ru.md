@@ -70,7 +70,7 @@ $workspace-inspector Проверь мои настройки. Объясни, �
 | Где | Для чего |
 |---|---|
 | [workspace-inspector](workspace-inspector/SKILL.md) | Сам навык анализа настроек |
-| [harness](harness/README.md) | Текущие правила Codex, пять навыков, три роли помощников и экспериментальные обработчики |
+| [harness](harness/README.md) | Текущие правила Codex, пять общих навыков, три роли помощников и экспериментальные обработчики; [Claude-версия](harness/claude/README.md) с правилами, навыком передачи проекта и двумя ролями |
 | [Шаблоны Codex](workspace-inspector/assets/codex/) / [Claude](workspace-inspector/assets/claude/) | Заготовки для адаптации к вашей среде |
 | [Unsnooze](unsnooze/README.md) | Отдельная программа: сохраняет состояние задачи и помогает продолжить работу; включает необязательный эксперимент оценки Jev |
 

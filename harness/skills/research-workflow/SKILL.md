@@ -23,7 +23,7 @@ Check definitions, population and denominator, period, units, transformations, s
 
 ## R3 - Synthesize
 
-The root synthesizes by default. Follow the global routing policy for consequential uncertainty, including contradictory evidence; use Astra when that policy calls for it. A separately requested review may use sol-reviewer. Preserve explicitly selected roles. Supply only critical evidence and the unresolved question; do not repeat the whole search without reason.
+The root synthesizes by default. Follow the global routing policy for consequential uncertainty, including contradictory evidence; use Astra (Codex) or critical-reviewer (Claude) when that policy calls for it. A separately requested review may use sol-reviewer (Codex) or critical-reviewer (Claude). Preserve explicitly selected roles. Supply only critical evidence and the unresolved question; do not repeat the whole search without reason.
 
 ## R4 - Verify
 

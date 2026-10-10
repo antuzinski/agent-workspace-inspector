@@ -5,7 +5,7 @@ description: Engineering workflow for repository exploration, debugging unclear 
 
 # Code workflow
 
-Keep the current task, model, and thread. Follow the global scope, authority, delegation, handoff, checkpoint, and telemetry rules in AGENTS.md.
+Keep the current task, model, and thread. Follow the global scope, authority, delegation, handoff, checkpoint, and telemetry rules in the global instructions (AGENTS.md in Codex, CLAUDE.md or the active system instructions in Claude).
 
 ## C0 - Choose the lightest workflow
 
@@ -23,11 +23,11 @@ Before coding, check whether the requested outcome already exists. Preserve the 
 
 ### Delegation
 
-Work in the root task by default. Follow the global routing policy for model and role selection: Luna for suitable bounded execution, Astra for architecture or consequential uncertainty, and sol-reviewer for a separately requested review. Preserve explicitly selected roles. Do not pass work agent-to-agent.
+Work in the root task by default. Follow the global routing policy for model and role selection. Codex: Luna for suitable bounded execution, Astra for architecture or consequential uncertainty, sol-reviewer for a separately requested review. Claude: bounded-worker for bounded execution, critical-reviewer for a material risk or a requested independent review. Preserve explicitly selected roles. Do not pass work agent-to-agent.
 
 ### Handoffs and checkpoints
 
-Follow the global AGENTS.md format. Checkpoint only at material uncertainty/dependency boundaries, around delegation/escalation, or before pause, compaction, or transfer. Do not repeat the global telemetry templates here.
+Follow the global handoff format. Checkpoint only at material uncertainty/dependency boundaries, around delegation/escalation, or before pause, compaction, or transfer. Do not repeat the global telemetry templates here.
 
 ## C3 - Verify
 
