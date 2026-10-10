@@ -69,7 +69,6 @@ After the review, you can ask the agent to apply selected changes.
 | [harness](harness/README.md) | Current Codex rules, five skills, three helper roles, and experimental event handlers |
 | [Codex templates](workspace-inspector/assets/codex/) / [Claude templates](workspace-inspector/assets/claude/) | Starting points to adapt to your environment |
 | [Unsnooze](unsnooze/README.md) | A separate program that saves task state and helps resume work; includes an optional Jev evaluation experiment |
-| [October 8, 2026 review](HARNESS_REVIEW_2026-10.md) | Checks against platform documentation and remaining limits |
 
 Start with the inspector. Choose other parts based on the problems it finds.
 
