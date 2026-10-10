@@ -70,7 +70,7 @@ After the review, you can ask the agent to apply selected changes.
 | Location | Purpose |
 |---|---|
 | [workspace-inspector](workspace-inspector/SKILL.md) | The inspection skill |
-| [harness](harness/README.md) | Current Codex rules, five skills, three helper roles, and experimental event handlers |
+| [harness](harness/README.md) | Current Codex rules, five shared skills, three helper roles, and experimental event handlers; a [Claude version](harness/claude/README.md) with rules, a project handoff skill, and two roles |
 | [Codex templates](workspace-inspector/assets/codex/) / [Claude templates](workspace-inspector/assets/claude/) | Starting points to adapt to your environment |
 | [Unsnooze](unsnooze/README.md) | A separate program that saves task state and helps resume work; includes an optional Jev evaluation experiment |
 
