@@ -25,6 +25,7 @@ Native `AGENTS.md` discovery requires v2.1.277+ and the built-in support enabled
 5. Check each subagent's tools, model setting, preloaded skills, permissions, memory, and whether its role is distinct.
 6. Treat hooks as executable code: inspect commands, permissions, matchers, timeouts, and failure behavior, not only descriptions. A `Stop` hook fires when a response ends, not necessarily when the task is complete; API errors use `StopFailure`. [Claude hooks](https://code.claude.com/docs/en/hooks-guide)
 7. Use `/mcp` and `/context` when available to inspect connection and context costs.
+8. Check prompt cache TTL: `promptCacheTtl` (main conversation) and `subagentPromptCacheTtl` (subagents, forks, workflows, compaction), or their env overrides `CLAUDE_CODE_PROMPT_CACHE_TTL` / `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`. Defaults are 5 minutes for subagents on every plan and for the main conversation on API keys, cloud providers and usage credits. Recommend `1h` where agents idle past 5 minutes (waiting on the user, tests, builds); 1h writes cost 2x base input versus 1.25x. Requires v2.1.242+. Verify with `ephemeral_1h_input_tokens` in `usage.cache_creation`. [Prompt caching](https://code.claude.com/docs/en/prompt-caching#cache-lifetime)
 
 ## Skills and role boundaries
 
