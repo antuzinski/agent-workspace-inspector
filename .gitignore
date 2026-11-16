@@ -3,4 +3,5 @@ Thumbs.db
 *.log
 .codex-log/
 .unsnooze/
-unsnooze/.unsnooze/
+__pycache__/
+*.pyc

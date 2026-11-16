@@ -9,7 +9,7 @@ Keep the current task and model. The root/current task owner coordinates and own
 
 ## R0 - Scope
 
-Establish only the question, necessary definitions and scope, evidence standard, exclusions, and completion criteria. Skip this phase when the request is already precise. Record a checkpoint only when a material finding or uncertainty must guide dependent work.
+Establish only the question, necessary definitions and scope, evidence standard, exclusions, and completion criteria. Skip this phase when the request is already precise.
 
 ## R1 - Collect
 
@@ -19,22 +19,18 @@ Delegate a collection batch only when its parts are genuinely independent, input
 
 ## R2 - Analyze
 
-Check definitions, population and denominator, period, units, transformations, source quality, methodology, contradictions, missing evidence, and alternative interpretations. Recompute important numbers with deterministic tools when practical. Checkpoint only when later work materially depends on a settled result.
+Check definitions, population and denominator, period, units, transformations, source quality, methodology, contradictions, missing evidence, and alternative interpretations. Recompute important numbers with deterministic tools when practical.
 
 ## R3 - Synthesize
 
-The root synthesizes by default. Follow the global routing policy for consequential uncertainty, including contradictory evidence; use Astra (Codex) or critical-reviewer (Claude) when that policy calls for it. A separately requested review may use sol-reviewer (Codex) or critical-reviewer (Claude). Preserve explicitly selected roles. Supply only critical evidence and the unresolved question; do not repeat the whole search without reason.
+Synthesize the evidence into an answer to the user’s question. Seek an independent review only when it is requested or a consequential unresolved issue warrants it under the active delegation rules. Supply the relevant evidence and question; do not repeat the whole search.
 
 ## R4 - Verify
 
 Verify material claims and calculations; match units, periods, populations, and denominators; prefer primary sources where practical; confirm citations support the claims; address material counterevidence; state unresolved uncertainty; keep conclusions within the evidence.
 
-Outcomes: PASS -> finish; MISSING_EVIDENCE -> collect; ANALYSIS_PROBLEM -> reanalyze; CRITICAL_UNCERTAINTY -> apply the global escalation policy.
+If evidence is missing or analysis is flawed, resolve that gap. State any remaining consequential uncertainty rather than forcing a conclusion.
 
 ## Output
 
 The root owns final presentation. Choose a format for the user's use case; use a table or spreadsheet for comparable records only when it materially improves filtering or comparison.
-
-## Context budget
-
-Follow the global context/cost policy: bounded document reads, one shared evidence packet, fresh scoped workers and short reports. Do not repeat common source collection or poll for agent progress. At a guard stop, save the result already obtained and finish; do not evade the budget.

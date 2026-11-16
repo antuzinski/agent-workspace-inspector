@@ -1,81 +1,16 @@
-![Agent Workspace Inspector](assets/github-header.png)
+# Agent workspace configuration
 
-# Agent Workspace Inspector
+Current shared Codex and Claude Code rules and skills, without mandatory audits, telemetry or experimental guards. [Русский](README.md)
 
-Find out which rules and skills your **Codex or Claude Code** needs, what already works, and what is worth changing.
+- `workspace-inspector/`: application and maintenance skill; the original name remains compatible.
+- `harness/AGENTS.md` and `harness/claude/CLAUDE.md`: portable shared rules.
+- `harness/skills/`: clear-writing, code-workflow, decision-review, product-work, research-workflow, visual-review-page.
+- `harness/agents/`: optional roles; model availability depends on the client.
 
-Ask your agent to inspect its setup. It reads the settings, finds conflicts, and explains specific changes. If nothing needs changing, it should say so.
+Clone the full repository and ask the agent to apply selected components using `workspace-inspector/SKILL.md`. Merge rules into the client's instruction file and copy selected skills into its skill directory, preserving existing requirements and saving originals. Installing the inspector alone does not install the payload.
 
-For example, one rule may require a helper for every task while another says to handle simple tasks directly. The inspector identifies the conflict and suggests a consistent rule. If task history is available, it also checks whether the conflict caused problems in practice.
+Private client config is not distributed. The local setup has removed custom compaction and tool-output limits, disabled old context-guard/checkpoint-feedback registrations and JEV. Built-in limits still apply. Remove only the old baseline's settings and hooks during migration. Unsnooze recovery remains a separate local tool and is no longer bundled. Built-in skills and plugins remain client-managed.
 
-[Русская версия](README.md)
+After authorized local changes run `python scripts/sync-local.py`, then `python scripts/sync-local.py --check`. Use `--codex-home PATH` for another source. Review the diff, validate metadata and references, commit intended changes and push. Six shared skills and portable policies are exported; roles are maintained separately. Explicitly select new skills for publication. Never publish private profiles, credentials, history, backups or analytics.
 
-## What you get
-
-- What already works well and should stay.
-- Which problems were found and what supports each finding.
-- What to change or install, and what to skip.
-- How to check the result and restore the previous setup.
-
-Start with the inspector. It compares your setup with our **harness — the rules, skills, and tools that guide an agent**. Then choose what to adopt: a useful part, a combination with your own rules, or nothing at all.
-
-[Architecture overview (Russian)](ARCHITECTURE.md): skill selection, delegation, tracing, and Unsnooze recovery.
-
-## Get started
-
-Ask Codex or Claude Code:
-
-```text
-Install the workspace-inspector skill from https://github.com/antuzinski/agent-workspace-inspector. The skill is in the workspace-inspector folder.
-```
-
-### Codex
-
-For manual installation, copy `workspace-inspector/` to either:
-
-- `~/.codex/skills/workspace-inspector/` for all your projects;
-- `<repo>/.agents/skills/workspace-inspector/` for a specific project.
-
-First request:
-
-```text
-$workspace-inspector Review my setup. Explain what works well, where there are problems, and which parts of this repository would help me. Explain your choices. Do not change files yet.
-```
-
-### Claude Code
-
-For manual installation, copy `workspace-inspector/` to either:
-
-- `~/.claude/skills/workspace-inspector/` for all your projects;
-- `<repo>/.claude/skills/workspace-inspector/` for a specific project.
-
-First request:
-
-```text
-/workspace-inspector Review my setup. Explain what works well, where there are problems, and which parts of this repository would help me. Explain your choices. Do not change files yet.
-```
-
-After the review, you can ask the agent to apply selected changes.
-
-## How the agent chooses changes
-
-1. Learns which tasks you work on.
-2. Checks your rules and skills: what gets used, what repeats, and what conflicts.
-3. Chooses what to keep, fix, or add.
-4. Explains how the changes will help with your tasks.
-5. Makes the changes and checks them when you ask it to.
-
-## Repository contents
-
-| Location | Purpose |
-|---|---|
-| [workspace-inspector](workspace-inspector/SKILL.md) | The inspection skill |
-| [harness](harness/README.md) | Current Codex rules, five shared skills, three helper roles, and experimental event handlers; a [Claude version](harness/claude/README.md) with rules, a project handoff skill, and two roles |
-| [Codex templates](workspace-inspector/assets/codex/) / [Claude templates](workspace-inspector/assets/claude/) | Starting points to adapt to your environment |
-| [Unsnooze](unsnooze/README.md) | A separate program that saves task state and helps resume work; includes an optional Jev evaluation experiment |
-
-Start with the inspector. Choose other parts based on the problems it finds.
-
-## License
-
-[MIT](LICENSE). The included Unsnooze retains its [upstream license and attribution](unsnooze/LICENSE).
+Synchronization happens during settings work, not through a background watcher. Restore originals or Git history to roll back. Matching files does not prove activation in a fresh client session.

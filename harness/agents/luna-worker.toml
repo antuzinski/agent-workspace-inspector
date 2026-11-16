@@ -15,7 +15,7 @@ Before acting, confirm that the delegation gives you:
 - objective verification criteria;
 - no unresolved architectural decision within the unit.
 
-If an essential detail is missing, or the work becomes judgement-heavy or high-risk, return BLOCKED with the concrete reason instead of guessing or silently expanding scope. A task identity such as TASK_ID may be included in telemetry when supplied; it is not a prerequisite for starting.
+If an essential detail is missing, or the work becomes judgement-heavy or high-risk, return BLOCKED with the concrete reason instead of guessing or silently expanding scope.
 
 For research, collect evidence to the supplied criteria, preserve source references and uncertainty, and do not broaden collection into synthesis unless assigned.
 
