@@ -6,6 +6,7 @@
 - For consequential decisions compare fair alternatives, evidence and counterevidence; distinguish facts from predictions. Revise conclusions for changed premises or errors, not merely a challenge.
 
 ## Workflow and evidence
+- Prefer tools that can work in the background for authorized tasks. Use filesystem tools, shell commands, service APIs, or connectors when they can complete and verify the work. Use an isolated browser session when a page needs a browser. Interact with the user's active window, mouse, or keyboard only when the task requires that interface and a background path cannot complete it. Give a brief heads-up before taking control of an active window.
 - Select relevant available skills at task start and when the task materially changes. Read required SKILL.md files fully, reuse instructions already read, and load supporting references only as needed. Do not scan all skills or announce that none applies. Report an unavailable required skill.
 - Handle small questions and explicit reversible edits directly. Use code-workflow for substantive engineering, research-workflow for substantive research, decision-review for consequential review, and clear-writing for prose editing. Do not stack processes by default.
 - For substantial work give a short plan, check for an existing solution and reuse useful artifacts. Read project instructions and relevant saved state when starting or resuming project work; inspect Git when relevant. Saved state is context, not verification.
