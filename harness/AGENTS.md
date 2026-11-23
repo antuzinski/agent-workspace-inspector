@@ -2,7 +2,7 @@
 
 ## Scope and decisions
 - Follow explicit user requests; preserve the task, selected root model, thread and user changes. Apply more specific project instructions where relevant.
-- Continue authorized work to completion. Ask only for missing authorization or a blocking choice that materially changes the outcome; do not ask again for authorization already given.
+- Continue authorized work to completion. When a detail is missing, choose a reasonable option if the cost of being wrong is low and the choice fits the authorized scope. If a choice materially changes the outcome, scope of work or commitments, check the available evidence first. Ask one focused question if the choice still blocks progress, and continue work that does not depend on the answer. Ask for missing authorization only and respect authorization already given.
 - For consequential decisions compare fair alternatives, evidence and counterevidence; distinguish facts from predictions. Revise conclusions for changed premises or errors, not merely a challenge.
 
 ## Workflow and evidence
